@@ -2,11 +2,13 @@ pico-8 cartridge // http://www.pico-8.com
 version 15
 __lua__
 
-n = 2
+n = 3
 n2 = n^2
 solution = {}
 
 function _init()
+  pset(127, 127, 8)
+  local initialtime = time()
   local sudoku = {}
   local sudokubis = {}
 
@@ -20,21 +22,27 @@ function _init()
     available[i] = i
   end
   available = shuffle(available)
-  while(solve(sudokubis)) do
-    printh('#available = '..#available)
+  local tries = 10
+  while(tries > 0 and #available > 0) do
+    -- printh('#available = '..#available)
     position = available[1]
     value = sudoku[position]
     sudoku[position] = 0
-    printh('position = '..position)
-    printh('value = '..value)
+    -- printh('position = '..position)
+    -- printh('value = '..value)
     del(available, position)
     printsolution(sudoku)
     sudokubis = sudoku
+    if not solve(sudokubis) then
+      sudoku[position] = value
+      tries -= 1
+    end
     -- wait(2)
   end
-  sudoku[position] = value
   printsolution(sudoku)
   printh('done!')
+  print(flr(time() - initialtime)..' s', 0, 122, 7)
+  pset(127, 127, 3)
 end
 
 function solve(sudoku)
@@ -85,7 +93,7 @@ function nzeroes(solution)
 end
 
 function _update()
-  if (btn(4)) updategrid()
+  -- if (btn(4)) _init()
 end
 
 -->8
@@ -108,7 +116,7 @@ function printsolution(solution)
     end
     -- printsquare(row, column, row..'/'..column..'/'..square)
   end
-
+  pset(127, 127, 8)
 end
 
 function updategrid()
@@ -141,7 +149,7 @@ function shuffle(tbl)
 end
 
 function printsquare(row, column, i)
-  local square_size = flr(127 / n2)
+  local square_size = flr(120 / n2)
   if (n < 4) then
     rect(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), 7)
   end
