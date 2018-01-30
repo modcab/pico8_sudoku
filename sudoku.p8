@@ -1,6 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
 version 15
 __lua__
+-- sudoku
+-- by modestocaballero
 
 n = 3
 n2 = n^2
@@ -11,9 +13,15 @@ function _init()
   local initialtime = time()
   local sudoku = {}
   local sudokubis = {}
+  local removed = {}
+  local values_removed = {}
+  local removed_since_last_try = 0
+  local times_solved = 0
 
+  cls()
+  print('generating, please wait :D', 1,1,7)
   solution = fillsolution()
-  printsolution(solution)
+  -- printsolution(solution)
   sudoku = solution
   sudokubis = solution
   -- wait()
@@ -22,25 +30,40 @@ function _init()
     available[i] = i
   end
   available = shuffle(available)
-  local tries = 10
+  local tries = 3
+  local try_every = 10
   while(tries > 0 and #available > 0) do
-    -- printh('#available = '..#available)
+    removed_since_last_try += 1
     position = available[1]
     value = sudoku[position]
     sudoku[position] = 0
-    -- printh('position = '..position)
-    -- printh('value = '..value)
     del(available, position)
-    printsolution(sudoku)
-    sudokubis = sudoku
-    if not solve(sudokubis) then
-      sudoku[position] = value
-      tries -= 1
+    unshift(removed, position)
+    unshift(values_removed, value)
+    -- printsolution(sudoku)
+    if (#removed % try_every == 0) then
+      removed_since_last_try = 0
+      sudokubis = sudoku
+      local found_error = false
+      while (not solve(sudokubis)) do
+        times_solved +=1
+        found_error = true
+        del(values_removed, value)
+        del(removed, position)
+        printh('removed: ' .. #removed)
+        printh(position)
+        sudoku[position] = value
+        sudokubis = sudoku
+        value = values_removed[1]
+        position = removed[1]
+      end
+      times_solved +=1
+      if (found_error) tries -= 1
     end
-    -- wait(2)
   end
   printsolution(sudoku)
   printh('done!')
+  printh('solved ' .. times_solved .. ' times to generate this one.')
   print(flr(time() - initialtime)..' s', 0, 122, 7)
   pset(127, 127, 3)
 end
@@ -176,13 +199,6 @@ function checkconflicts (solution, position, value)
   local column = getcolumn(position)
   for currentposition, currentvalue in pairs(solution) do
     if ((currentvalue == value) and (currentposition != position) and (square == getsquare(currentposition) or (row == getrow(currentposition)) or (column == getcolumn(currentposition)))) then
-      -- printh('conflict in position '..position)
-      -- printh('with position '..currentposition)
-      -- printh('with value '..value)
-      -- printh('squares '..square..' - '..getsquare(currentposition))
-      -- printh('rows '..row..' - '..getrow(currentposition))
-      -- printh('columns '..column..' - '..getcolumn(currentposition))
-      -- printh('---')
         return true
     end
   end
@@ -196,7 +212,6 @@ function fillposition(solution, available)
   end
   local position = available[1]
   del(available, position)
-  -- printh('----position: '..position)
   local values = {}
   for i=1,(n^2) do
     values[i] = i
@@ -216,8 +231,6 @@ function fillposition(solution, available)
   end
   unshift(available, position)
   solution[position] = 0
-  -- printh('----position: '..position)
-  -- printh('----not found')
   return false
 end
 
