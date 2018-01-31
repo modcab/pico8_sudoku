@@ -11,6 +11,8 @@ initialtime = 0
 time_generation = 0
 removed = {}
 square_size = 10
+tries = 1
+
 
 game = {
   state = 1,
@@ -32,6 +34,7 @@ headers = {}
 sudoku = {}
 
 function _init()
+  setn(2)
   -- debugging
 --   sudoku2 =    {0, 0, 3, 1,
 --                 0, 3, 0, 0,
@@ -49,11 +52,10 @@ function _update()
   if (game.state == game.menu) then
     if (btnp(0) or btnp(1)) then
       if (n == 2) then
-        n = 3
+        setn(3)
       else
-        n = 2
+        setn(2)
       end
-      n2 = n^2
     end
     if (btnp(4)) then
       game.state = game.generation
@@ -76,7 +78,6 @@ function _update()
       available[i] = i
     end
     available = shuffle(available)
-    local tries = 1
     while(tries > 0 and #available > 0) do
       position = available[1]
       value = sudoku[position]
@@ -115,6 +116,18 @@ function _update()
     if (btnp(3)) then
       grid.active.column = (grid.active.column + 1) % n2
     end
+  end
+end
+
+function setn(new_n)
+  n = new_n
+  n2 = n^2
+  if (n == 2) then
+    tries = 3
+    square_size = 10
+  else
+    tries = 10
+    square_size = 10
   end
 end
 
