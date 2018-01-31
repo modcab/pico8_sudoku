@@ -18,6 +18,10 @@ game = {
   game = 4,
 }
 
+grid = {
+  solution ={}
+}
+
 
 function _init()
   if (game.state == game.menu) then
@@ -50,19 +54,14 @@ function _update()
     local times_solved = 0
 
     solution = fillsolution()
-    -- printsolution(solution)
     sudoku = solution
-    sudokubis = solution
-    -- wait()
     available = {}
     for i=1,(n^4) do
       available[i] = i
     end
     available = shuffle(available)
     local tries = flr(n / 2) + 1
-    local try_every = n2 + 1
     while(tries > 0 and #available > 0) do
-      removed_since_last_try += 1
       position = available[1]
       value = sudoku[position]
       sudoku[position] = 0
@@ -70,26 +69,16 @@ function _update()
       unshift(removed, position)
       unshift(values_removed, value)
       -- printsolution(sudoku)
-      if (#removed % try_every == 0) then
-        removed_since_last_try = 0
-        sudokubis = sudoku
-        local found_error = false
-        while (not solve(sudokubis)) do
+        if (not solve(sudoku)) do
           times_solved +=1
-          found_error = true
-          del(values_removed, value)
-          del(removed, position)
           printh('removed: ' .. #removed)
           printh(position)
           sudoku[position] = value
-          sudokubis = sudoku
-          value = values_removed[1]
-          position = removed[1]
+          tries -= 1
         end
         times_solved +=1
-        if (found_error) tries -= 1
+
       end
-    end
     game.state = game.game
     time_generation = flr(time() - initialtime)..' s'
   end
@@ -165,14 +154,6 @@ end
 
 
 -->8
-
-function wait(a)
-  local firsttime = time()
-  for i = 1,a*30 do flip()
-  end
-  local newtime = time()
-end
-
 function printsolution(solution)
   cls()
   for i=1,(n^4) do
@@ -182,7 +163,6 @@ function printsolution(solution)
     if solution[i] then
       printsquare(row, column, solution[i])
     end
-    -- printsquare(row, column, row..'/'..column..'/'..square)
   end
   pset(127, 127, 8)
 end
@@ -251,7 +231,6 @@ function checkconflicts (solution, position, value)
 end
 
 function fillposition(solution, available)
-  -- printsolution(solution)
   if (#available == 0) then
     return solution
   end
@@ -268,8 +247,6 @@ function fillposition(solution, available)
       solution[position] = value
       local newsolution = fillposition(solution, available)
       if (newsolution) then
-        -- printh('----position: '..position)
-        -- printh('----value: '..value)
         return newsolution
       end
     end
@@ -279,17 +256,25 @@ function fillposition(solution, available)
   return false
 end
 
+-->8
+-- Util.
+function center_print(text, y)
+  local padding = 64 - flr((#text * 4) / 2)
+  print(text, padding, y)
+end
+-- Stops execution for a seconds
+function wait(s)
+  local firsttime = time()
+  for i = 1, s * 30 do flip()
+  end
+  local newtime = time()
+end
+
+-- Adds an element at the beginning of an array.
 function unshift(tbl, v)
   add(tbl, v)
   local size = #tbl
   for i = size, 2, -1 do
     tbl[i], tbl[i-1] = tbl[i-1], tbl[i]
   end
-
-end
-
--->8
-function center_print(text, y)
-  local padding = 64 - flr((#text * 4) / 2)
-  print(text, padding, y)
 end
