@@ -10,7 +10,7 @@ solution = {}
 initialtime = 0
 time_generation = 0
 removed = {}
-
+square_size = 10
 
 game = {
   state = 1,
@@ -21,9 +21,14 @@ game = {
 }
 
 grid = {
-  solution = {}
+  solution = {},
+  active = {
+    row = 0,
+    column = 0
+  }
 }
 
+headers = {}
 sudoku = {}
 
 function _init()
@@ -34,9 +39,7 @@ function _init()
 --                 4, 0, 0, 3,
 -- }
 --   if (solve(sudoku2)) then
---     printh('solved')
 --   else
---     printh('not solved')
 --   end
   if (game.state == game.menu) then
   end
@@ -77,31 +80,42 @@ function _update()
     while(tries > 0 and #available > 0) do
       position = available[1]
       value = sudoku[position]
-      printh('################')
-      printh('#available: ' .. #available)
-      printh('tries: ' .. tries)
-      printh('removed: ' .. position .. ' -> ' .. value)
       sudoku[position] = 0
       del(available, position)
       unshift(removed, position)
         if (not solve(sudoku)) then
           del(removed, position)
-          printh('n removed: ' .. #removed)
-          printh('putting back: ' .. position .. '->' .. value)
-          -- printh(value)
           sudoku[position] = value
           add(available, position)
           tries -= 1
         else
-          printh('SOLVED')
         end
         times_solved +=1
 
       end
+      for k, v in pairs(sudoku) do
+        if (v != 0) add(headers, k)
+      end
+      for v in all(headers) do
+      end
+
     game.state = game.game
     time_generation = flr(time() - initialtime)..' s'
   end
-
+  if (game.state == game.game) then
+    if (btnp(0)) then
+      grid.active.row = (grid.active.row - 1) % n2
+    end
+    if (btnp(1)) then
+      grid.active.row = (grid.active.row + 1) % n2
+    end
+    if (btnp(2)) then
+      grid.active.column = (grid.active.column - 1) % n2
+    end
+    if (btnp(3)) then
+      grid.active.column = (grid.active.column + 1) % n2
+    end
+  end
 end
 
 function _draw()
@@ -119,11 +133,22 @@ function _draw()
   if (game.state == game.game) then
     cls()
     printsolution(sudoku)
+    printactivesquare()
     -- printheaders(removed)
     print(time_generation, 0, 122, 7)
     pset(127, 127, 3)
   end
 end
+
+function printactivesquare()
+  local row = grid.active.row
+  local column = grid.active.column
+  printh(row)
+  printh(column)
+  rect(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), flr(rnd(15)) + 1)
+end
+
+
 
 function solve(sudoku)
   local sudoku_i = {}
@@ -165,36 +190,35 @@ function nzeroes(solution)
       zeroes += 1
     end
   end
-  printh(zeroes)
   return zeroes
 end
 
-
 -->8
 function printsolution(solution)
+  printh('------------- start')
+  printh('headers')
+  for v in all(headers) do
+    printh(v)
+  end
+  printh('values')
+  for k,v in pairs(solution) do
+    printh(k .. ' -> ' .. v)
+  end
+
   cls()
+  local y = 0
   for i=1,(n^4) do
+    y+=1
     local column = getcolumn(i)
     local row = getrow(i)
     local square = getsquare(i)
+    printh('i = ' .. i .. ', c = ' .. column .. ', r = ' .. row .. ', sq = ' .. square)
     if solution[i] then
-      if hasvalue(removed, i) then
-        printsquare(row, column, solution[i])
-      else
+      if hasvalue(headers, i) then
+        -- printh('header')
         printheader(row, column, solution[i])
       end
-    end
-  end
-  pset(127, 127, 8)
-end
-
-function printheaders()
-  for v in all(removed) do
-    local column = getcolumn(v)
-    local row = getrow(v)
-    local square = getsquare(v)
-    if sudoku[v] then
-      printheader(row, column, sudoku[v])
+      printsquare(row, column, solution[i])
     end
   end
   pset(127, 127, 8)
@@ -222,19 +246,18 @@ function shuffle(tbl)
 end
 
 function printsquare(row, column, i)
-  local square_size = flr(120 / n2)
   if (n < 4) then
     rect(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), 7)
   end
   if i != 0 then
-    print(i, (column + 1/4) * square_size, (row + 1/4) * square_size)
+    print(i, (column + 1/4) * square_size, (row + 1/4) * square_size, 7)
   end
 end
 
 function printheader(row, column, i)
-  local square_size = flr(120 / n2)
+  printh('header, r = ' .. row .. ', c = ' .. column .. ', i = ' .. i)
   if (n < 4) then
-    rectfill(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), 8)
+    rectfill(column * square_size + 1, row * square_size + 1, square_size * (column + 1) - 1, square_size * (row + 1) - 1, 12)
   end
   if i != 0 then
     print(i, (column + 1/4) * square_size, (row + 1/4) * square_size, 7)
