@@ -4,11 +4,13 @@ __lua__
 -- sudoku
 -- by modestocaballero
 
-n = 3
+n = 2
 n2 = n^2
 solution = {}
 initialtime = 0
 time_generation = 0
+removed = {}
+
 
 game = {
   state = 1,
@@ -19,11 +21,23 @@ game = {
 }
 
 grid = {
-  solution ={}
+  solution = {}
 }
 
+sudoku = {}
 
 function _init()
+  -- debugging
+--   sudoku2 =    {0, 0, 3, 1,
+--                 0, 3, 0, 0,
+--                 0, 0, 2, 0,
+--                 4, 0, 0, 3,
+-- }
+--   if (solve(sudoku2)) then
+--     printh('solved')
+--   else
+--     printh('not solved')
+--   end
   if (game.state == game.menu) then
   end
 end
@@ -48,7 +62,6 @@ function _update()
     pset(127, 127, 8)
     initialtime = time()
     local sudokubis = {}
-    local removed = {}
     local values_removed = {}
     local removed_since_last_try = 0
     local times_solved = 0
@@ -60,21 +73,27 @@ function _update()
       available[i] = i
     end
     available = shuffle(available)
-    local tries = flr(n / 2) + 1
+    local tries = 1
     while(tries > 0 and #available > 0) do
       position = available[1]
       value = sudoku[position]
+      printh('################')
+      printh('#available: ' .. #available)
+      printh('tries: ' .. tries)
+      printh('removed: ' .. position .. ' -> ' .. value)
       sudoku[position] = 0
       del(available, position)
       unshift(removed, position)
-      unshift(values_removed, value)
-      -- printsolution(sudoku)
-        if (not solve(sudoku)) do
-          times_solved +=1
-          printh('removed: ' .. #removed)
-          printh(position)
+        if (not solve(sudoku)) then
+          del(removed, position)
+          printh('n removed: ' .. #removed)
+          printh('putting back: ' .. position .. '->' .. value)
+          -- printh(value)
           sudoku[position] = value
+          add(available, position)
           tries -= 1
+        else
+          printh('SOLVED')
         end
         times_solved +=1
 
@@ -100,6 +119,7 @@ function _draw()
   if (game.state == game.game) then
     cls()
     printsolution(sudoku)
+    -- printheaders(removed)
     print(time_generation, 0, 122, 7)
     pset(127, 127, 3)
   end
@@ -110,11 +130,9 @@ function solve(sudoku)
   for v in all(sudoku) do
     add(sudoku_i, v)
   end
-  -- printsolution(sudoku_i)
   local nzeroes = #sudoku_i
   local newvalues = #sudoku_i
   while nzeroes > 0 and newvalues > 0 do
-    -- printsolution(sudoku_i)
     nzeroes = 0
     newvalues = 0
     for k, v in pairs(sudoku_i) do
@@ -130,7 +148,6 @@ function solve(sudoku)
         end
         if #values == 1 then
           sudoku_i[k] = values[1]
-          -- printsolution(sudoku_i)
           newvalues +=1
         else
           nzeroes +=1
@@ -161,19 +178,27 @@ function printsolution(solution)
     local row = getrow(i)
     local square = getsquare(i)
     if solution[i] then
-      printsquare(row, column, solution[i])
+      if hasvalue(removed, i) then
+        printsquare(row, column, solution[i])
+      else
+        printheader(row, column, solution[i])
+      end
     end
   end
   pset(127, 127, 8)
 end
 
-function updategrid()
-  cls()
-  solution = fillsolution()
-  printsolution(solution)
+function printheaders()
+  for v in all(removed) do
+    local column = getcolumn(v)
+    local row = getrow(v)
+    local square = getsquare(v)
+    if sudoku[v] then
+      printheader(row, column, sudoku[v])
+    end
+  end
+  pset(127, 127, 8)
 end
-
-
 
 function fillsolution()
   solution = {}
@@ -203,6 +228,16 @@ function printsquare(row, column, i)
   end
   if i != 0 then
     print(i, (column + 1/4) * square_size, (row + 1/4) * square_size)
+  end
+end
+
+function printheader(row, column, i)
+  local square_size = flr(120 / n2)
+  if (n < 4) then
+    rectfill(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), 8)
+  end
+  if i != 0 then
+    print(i, (column + 1/4) * square_size, (row + 1/4) * square_size, 7)
   end
 end
 
@@ -277,4 +312,11 @@ function unshift(tbl, v)
   for i = size, 2, -1 do
     tbl[i], tbl[i-1] = tbl[i-1], tbl[i]
   end
+end
+
+function hasvalue(tbl, search)
+  for current in all(tbl) do
+    if (current == search) return true
+  end
+  return false
 end
