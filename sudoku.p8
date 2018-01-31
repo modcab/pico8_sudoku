@@ -7,65 +7,113 @@ __lua__
 n = 3
 n2 = n^2
 solution = {}
+initialtime = 0
+time_generation = 0
+
+game = {
+  state = 1,
+  menu = 1,
+  generation = 2,
+  generating = 3,
+  game = 4,
+}
+
 
 function _init()
-  pset(127, 127, 8)
-  local initialtime = time()
-  local sudoku = {}
-  local sudokubis = {}
-  local removed = {}
-  local values_removed = {}
-  local removed_since_last_try = 0
-  local times_solved = 0
-
-  cls()
-  print('generating, please wait :D', 1,1,7)
-  solution = fillsolution()
-  -- printsolution(solution)
-  sudoku = solution
-  sudokubis = solution
-  -- wait()
-  available = {}
-  for i=1,(n^4) do
-    available[i] = i
+  if (game.state == game.menu) then
   end
-  available = shuffle(available)
-  local tries = 3
-  local try_every = 10
-  while(tries > 0 and #available > 0) do
-    removed_since_last_try += 1
-    position = available[1]
-    value = sudoku[position]
-    sudoku[position] = 0
-    del(available, position)
-    unshift(removed, position)
-    unshift(values_removed, value)
-    -- printsolution(sudoku)
-    if (#removed % try_every == 0) then
-      removed_since_last_try = 0
-      sudokubis = sudoku
-      local found_error = false
-      while (not solve(sudokubis)) do
-        times_solved +=1
-        found_error = true
-        del(values_removed, value)
-        del(removed, position)
-        printh('removed: ' .. #removed)
-        printh(position)
-        sudoku[position] = value
-        sudokubis = sudoku
-        value = values_removed[1]
-        position = removed[1]
+end
+
+function _update()
+  if (game.state == game.menu) then
+    if (btnp(0) or btnp(1)) then
+      if (n == 2) then
+        n = 3
+      else
+        n = 2
       end
-      times_solved +=1
-      if (found_error) tries -= 1
+      n2 = n^2
+    end
+    if (btnp(4)) then
+      game.state = game.generation
     end
   end
-  printsolution(sudoku)
-  printh('done!')
-  printh('solved ' .. times_solved .. ' times to generate this one.')
-  print(flr(time() - initialtime)..' s', 0, 122, 7)
-  pset(127, 127, 3)
+  if (game.state == game.generation) then
+    game.state = game.generating
+    cls()
+    pset(127, 127, 8)
+    initialtime = time()
+    local sudokubis = {}
+    local removed = {}
+    local values_removed = {}
+    local removed_since_last_try = 0
+    local times_solved = 0
+
+    solution = fillsolution()
+    -- printsolution(solution)
+    sudoku = solution
+    sudokubis = solution
+    -- wait()
+    available = {}
+    for i=1,(n^4) do
+      available[i] = i
+    end
+    available = shuffle(available)
+    local tries = flr(n / 2) + 1
+    local try_every = n2 + 1
+    while(tries > 0 and #available > 0) do
+      removed_since_last_try += 1
+      position = available[1]
+      value = sudoku[position]
+      sudoku[position] = 0
+      del(available, position)
+      unshift(removed, position)
+      unshift(values_removed, value)
+      -- printsolution(sudoku)
+      if (#removed % try_every == 0) then
+        removed_since_last_try = 0
+        sudokubis = sudoku
+        local found_error = false
+        while (not solve(sudokubis)) do
+          times_solved +=1
+          found_error = true
+          del(values_removed, value)
+          del(removed, position)
+          printh('removed: ' .. #removed)
+          printh(position)
+          sudoku[position] = value
+          sudokubis = sudoku
+          value = values_removed[1]
+          position = removed[1]
+        end
+        times_solved +=1
+        if (found_error) tries -= 1
+      end
+    end
+    game.state = game.game
+    time_generation = flr(time() - initialtime)..' s'
+  end
+
+end
+
+function _draw()
+  if (game.state == game.menu) then
+    cls()
+    center_print('choose sudoku type', 30)
+    center_print(n..'x'..n, 50)
+    center_print('\x8b\x91 to select', 70)
+    center_print('\x8e to confirm', 80)
+  end
+  if (game.state == game.generating) then
+    cls()
+    center_print('Generating your sudoku, please wait', 80)
+  end
+  if (game.state == game.game) then
+    cls()
+    printsolution(sudoku)
+    print(time_generation, 0, 122, 7)
+    pset(127, 127, 3)
+  end
 end
 
 function solve(sudoku)
@@ -115,9 +163,6 @@ function nzeroes(solution)
   return zeroes
 end
 
-function _update()
-  -- if (btn(4)) _init()
-end
 
 -->8
 
@@ -241,4 +286,10 @@ function unshift(tbl, v)
     tbl[i], tbl[i-1] = tbl[i-1], tbl[i]
   end
 
+end
+
+-->8
+function center_print(text, y)
+  local padding = 64 - flr((#text * 4) / 2)
+  print(text, padding, y)
 end
