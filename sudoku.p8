@@ -42,115 +42,16 @@ overlay = {
 
 function _init()
   setn(2)
-  -- debugging
---   sudoku2 =    {0, 0, 3, 1,
---                 0, 3, 0, 0,
---                 0, 0, 2, 0,
---                 4, 0, 0, 3,
--- }
---   if (solve(sudoku2)) then
---   else
---   end
-  if (game.state == game.menu) then
-  end
+  overlay_disable()
 end
 
 function _update()
   if (game.state == game.menu) then
-    if (btnp(0) or btnp(1)) then
-      if (n == 2) then
-        setn(3)
-      else
-        setn(2)
-      end
-    end
-    if (btnp(4)) then
-      game.state = game.generation
-      cls()
-      center_print('Generating your sudoku, please wait', 80)
-    end
-  end
-  if (game.state == game.generation) then
-    game.state = game.generating
-    pset(127, 127, 8)
-    initialtime = time()
-    local sudokubis = {}
-    local values_removed = {}
-    local removed_since_last_try = 0
-    local times_solved = 0
-
-    solution = fillsolution()
-    sudoku = solution
-    available = {}
-    for i=1,(n^4) do
-      available[i] = i
-    end
-    available = shuffle(available)
-    while(tries > 0 and #available > 0) do
-      position = available[1]
-      value = sudoku[position]
-      sudoku[position] = 0
-      del(available, position)
-      unshift(removed, position)
-        if (not solve(sudoku)) then
-          del(removed, position)
-          sudoku[position] = value
-          add(available, position)
-          tries -= 1
-        else
-        end
-        times_solved +=1
-
-      end
-      for k, v in pairs(sudoku) do
-        if (v != 0) add(headers, k)
-      end
-      for v in all(headers) do
-      end
-
-    game.state = game.game
-    time_generation = flr(time() - initialtime)..' s'
-  end
-  if (game.state == game.game) then
-    if (not overlay.enabled) then
-      if (btnp(0)) then
-        grid.active.column = (grid.active.column - 1) % n2
-      end
-      if (btnp(1)) then
-        grid.active.column = (grid.active.column + 1) % n2
-      end
-      if (btnp(2)) then
-        grid.active.row = (grid.active.row - 1) % n2
-      end
-      if (btnp(3)) then
-        grid.active.row = (grid.active.row + 1) % n2
-      end
-      if (btnp(4)) then
-        overlay.enabled = true
-      end
-
-    else
-      -- overlay enabled.
-      -- move left and right
-      if (btnp(0)) then
-        overlay.selected = overlay.selected - 1
-        if (overlay.selected < 1) overlay.selected = n2
-      end
-      if (btnp(1)) then
-        overlay.selected = overlay.selected + 1
-        if (overlay.selected > n2) overlay.selected = 1
-      end
-      -- select
-      if (btnp(4)) then
-        overlay.enabled = false
-        position = getifromrowcolumn(grid.active.row, grid.active.column)
-        sudoku[position] = overlay.selected
-      end
-      -- cancel
-      if (btnp(5)) then
-        overlay.enabled = false
-      end
-    end
+    update_menu()
+  elseif (game.state == game.generation) then
+    update_generation()
+  elseif (game.state == game.game) then
+    update_game()
   end
 end
 
@@ -176,15 +77,12 @@ end
 
 function _draw()
   if (game.state == game.menu) then
-    cls()
-    center_print('choose sudoku type', 30)
-    center_print(n..'x'..n, 50)
-    center_print('\x8b\x91 to select', 70)
-    center_print('\x8e to confirm', 80)
+    draw_menu()
   end
   if (game.state == game.generation) then
     cls()
     center_print('Generating your sudoku, please wait', 80)
+    return
   end
   if (game.state == game.game) then
     cls()
@@ -193,11 +91,12 @@ function _draw()
     printoverlay()
     print(time_generation, 0, 122, 7)
     pset(127, 127, 3)
+    return
   end
 end
 
 function printoverlay()
-  if (overlay.enabled == true) then
+  if (overlay_is_enabled) then
     local str = ''
     local color = 7
     local padding = 64 - (n2 * 4)
@@ -262,6 +161,123 @@ function nzeroes(solution)
 end
 
 -->8
+-- menu
+function update_menu()
+  if (btnp(0) or btnp(1)) then
+    if (n == 2) then
+      setn(3)
+    else
+      setn(2)
+    end
+  end
+  if (btnp(4)) then
+    game.state = game.generation
+    cls()
+    center_print('Generating your sudoku, please wait', 80)
+  end
+  return
+end
+
+function draw_menu()
+  cls()
+  center_print('choose sudoku type', 30)
+  center_print(n..'x'..n, 50)
+  center_print('\x8b\x91 to select', 70)
+  center_print('\x8e to confirm', 80)
+  return
+end
+
+-->8
+-- generation
+
+function update_generation()
+  game.state = game.generating
+  pset(127, 127, 8)
+  initialtime = time()
+  local sudokubis = {}
+  local values_removed = {}
+  local removed_since_last_try = 0
+  local times_solved = 0
+
+  solution = fillsolution()
+  sudoku = solution
+  available = {}
+  for i=1,(n^4) do
+    available[i] = i
+  end
+  available = shuffle(available)
+  while(tries > 0 and #available > 0) do
+    position = available[1]
+    value = sudoku[position]
+    sudoku[position] = 0
+    del(available, position)
+    unshift(removed, position)
+      if (not solve(sudoku)) then
+        del(removed, position)
+        sudoku[position] = value
+        add(available, position)
+        tries -= 1
+      else
+      end
+      times_solved +=1
+
+    end
+    for k, v in pairs(sudoku) do
+      if (v != 0) add(headers, k)
+    end
+    for v in all(headers) do
+    end
+
+  game.state = game.game
+  time_generation = flr(time() - initialtime)..' s'
+  return
+end
+-->8
+-- game
+
+function update_game()
+  if (overlay_is_enabled()) then
+    -- overlay enabled.
+    -- move left and right
+    if (btnp(0)) then
+      overlay.selected = overlay.selected - 1
+      if (overlay.selected < 1) overlay.selected = n2
+    end
+    if (btnp(1)) then
+      overlay.selected = overlay.selected + 1
+      if (overlay.selected > n2) overlay.selected = 1
+    end
+    -- select
+    if (btnp(4)) then
+      overlay_disable()
+      position = getifromrowcolumn(grid.active.row, grid.active.column)
+      sudoku[position] = overlay.selected
+    end
+    -- cancel
+    if (btnp(5)) then
+      overlay_disable()
+    end
+  else
+    if (btnp(0)) then
+      grid.active.column = (grid.active.column - 1) % n2
+    end
+    if (btnp(1)) then
+      grid.active.column = (grid.active.column + 1) % n2
+    end
+    if (btnp(2)) then
+      grid.active.row = (grid.active.row - 1) % n2
+    end
+    if (btnp(3)) then
+      grid.active.row = (grid.active.row + 1) % n2
+    end
+    if (btnp(4)) then
+      overlay_enable()
+    end
+  end
+  return
+end
+
+-->8
 function printsolution(solution)
   for v in all(headers) do
   end
@@ -318,6 +334,20 @@ function printsquare(row, column, square, i, c)
     y = (row + 1/4) * square_size + flr(square / n) + y_padding
     print(i, x, y, 7)
   end
+end
+
+function overlay_disable()
+  printh('overlay_disable')
+  overlay.enabled = false
+end
+
+function overlay_enable()
+  printh('overlay_enable')
+  overlay.enabled = true
+end
+
+function overlay_is_enabled()
+  return overlay.enabled == true
 end
 
 function printheader(row, column, square, i)
