@@ -131,6 +131,7 @@ function _update()
 
     else
       -- overlay enabled.
+      -- move left and right
       if (btnp(0)) then
         overlay.selected = overlay.selected - 1
         if (overlay.selected < 1) overlay.selected = n2
@@ -139,10 +140,15 @@ function _update()
         overlay.selected = overlay.selected + 1
         if (overlay.selected > n2) overlay.selected = 1
       end
+      -- select
       if (btnp(4)) then
-        overlay.enabled = not overlay.enabled
+        overlay.enabled = false
         position = getifromrowcolumn(grid.active.row, grid.active.column)
         sudoku[position] = overlay.selected
+      end
+      -- cancel
+      if (btnp(5)) then
+        overlay.enabled = false
       end
     end
   end
