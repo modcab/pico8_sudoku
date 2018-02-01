@@ -105,16 +105,16 @@ function _update()
   end
   if (game.state == game.game) then
     if (btnp(0)) then
-      grid.active.row = (grid.active.row - 1) % n2
-    end
-    if (btnp(1)) then
-      grid.active.row = (grid.active.row + 1) % n2
-    end
-    if (btnp(2)) then
       grid.active.column = (grid.active.column - 1) % n2
     end
-    if (btnp(3)) then
+    if (btnp(1)) then
       grid.active.column = (grid.active.column + 1) % n2
+    end
+    if (btnp(2)) then
+      grid.active.row = (grid.active.row - 1) % n2
+    end
+    if (btnp(3)) then
+      grid.active.row = (grid.active.row + 1) % n2
     end
   end
 end
@@ -156,7 +156,8 @@ end
 function printactivesquare()
   local row = grid.active.row
   local column = grid.active.column
-  rect(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), flr(rnd(15)) + 1)
+  local square = rowcolumnsquare(row, column)
+  printsquare(row, column, square, 0, flr(rnd(15)) + 1)
 end
 
 
@@ -249,12 +250,13 @@ function shuffle(tbl)
   return tbl
 end
 
-function printsquare(row, column, square, i)
+function printsquare(row, column, square, i, c)
+  c = c or 7
   x0 = column * square_size + (square % n)
   y0 = row * square_size + flr(square / n)
   x1 = square_size * (column + 1) + (square % n)
   y1 = square_size * (row + 1) + flr(square / n)
-  rect(x0, y0, x1, y1, 7)
+  rect(x0, y0, x1, y1, c)
   if i != 0 then
     x = (column + 1/4) * square_size + (square % n)
     y = (row + 1/4) * square_size + flr(square / n)
@@ -285,6 +287,12 @@ end
 
 function getsquare(i)
   return flr(getcolumn(i) / n) + (n * flr(getrow(i) / n))
+end
+
+function rowcolumnsquare(row, column)
+  local n1 = flr(column / n)
+  local n2 = n * flr(row / n)
+  return n1 + n2
 end
 
 function checkconflicts (solution, position, value)
