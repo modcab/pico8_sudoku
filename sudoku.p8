@@ -156,8 +156,6 @@ end
 function printactivesquare()
   local row = grid.active.row
   local column = grid.active.column
-  printh(row)
-  printh(column)
   rect(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), flr(rnd(15)) + 1)
 end
 
@@ -208,14 +206,9 @@ end
 
 -->8
 function printsolution(solution)
-  printh('------------- start')
-  printh('headers')
   for v in all(headers) do
-    printh(v)
   end
-  printh('values')
   for k,v in pairs(solution) do
-    printh(k .. ' -> ' .. v)
   end
 
   cls()
@@ -225,13 +218,11 @@ function printsolution(solution)
     local column = getcolumn(i)
     local row = getrow(i)
     local square = getsquare(i)
-    printh('i = ' .. i .. ', c = ' .. column .. ', r = ' .. row .. ', sq = ' .. square)
     if solution[i] then
       if hasvalue(headers, i) then
-        -- printh('header')
-        printheader(row, column, solution[i])
+        printheader(row, column, square, solution[i])
       end
-      printsquare(row, column, solution[i])
+      printsquare(row, column, square, solution[i])
     end
   end
   pset(127, 127, 8)
@@ -258,22 +249,29 @@ function shuffle(tbl)
   return tbl
 end
 
-function printsquare(row, column, i)
-  if (n < 4) then
-    rect(row * square_size, column * square_size, square_size * (row + 1), square_size * (column + 1), 7)
-  end
+function printsquare(row, column, square, i)
+  x0 = column * square_size + (square % n)
+  y0 = row * square_size + flr(square / n)
+  x1 = square_size * (column + 1) + (square % n)
+  y1 = square_size * (row + 1) + flr(square / n)
+  rect(x0, y0, x1, y1, 7)
   if i != 0 then
-    print(i, (column + 1/4) * square_size, (row + 1/4) * square_size, 7)
+    x = (column + 1/4) * square_size + (square % n)
+    y = (row + 1/4) * square_size + flr(square / n)
+    print(i, x, y, 7)
   end
 end
 
-function printheader(row, column, i)
-  printh('header, r = ' .. row .. ', c = ' .. column .. ', i = ' .. i)
-  if (n < 4) then
-    rectfill(column * square_size + 1, row * square_size + 1, square_size * (column + 1) - 1, square_size * (row + 1) - 1, 12)
-  end
+function printheader(row, column, square, i)
+  x0 = column * square_size + (square % n) + 1
+  y0 = row * square_size + flr(square / n) + 1
+  x1 = square_size * (column + 1) + (square % n) - 1
+  y1 = square_size * (row + 1) + flr(square / n) - 1
+  rectfill(x0, y0, x1, y1, 12)
   if i != 0 then
-    print(i, (column + 1/4) * square_size, (row + 1/4) * square_size, 7)
+    x = (column + 1/4) * square_size + (square % n)
+    y = (row + 1/4) * square_size + flr(square / n)
+    print(i, x, y, 7)
   end
 end
 
