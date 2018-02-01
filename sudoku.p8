@@ -78,25 +78,15 @@ end
 function _draw()
   if (game.state == game.menu) then
     draw_menu()
-  end
-  if (game.state == game.generation) then
-    cls()
-    center_print('Generating your sudoku, please wait', 80)
-    return
-  end
-  if (game.state == game.game) then
-    cls()
-    printsolution(sudoku)
-    printactivesquare()
-    printoverlay()
-    print(time_generation, 0, 122, 7)
-    pset(127, 127, 3)
-    return
+  elseif (game.state == game.generation) then
+    draw_generation()
+  elseif (game.state == game.game) then
+    draw_game()
   end
 end
 
 function printoverlay()
-  if (overlay_is_enabled) then
+  if (overlay_is_enabled()) then
     local str = ''
     local color = 7
     local padding = 64 - (n2 * 4)
@@ -172,8 +162,6 @@ function update_menu()
   end
   if (btnp(4)) then
     game.state = game.generation
-    cls()
-    center_print('Generating your sudoku, please wait', 80)
   end
   return
 end
@@ -230,8 +218,14 @@ function update_generation()
 
   game.state = game.game
   time_generation = flr(time() - initialtime)..' s'
-  return
 end
+
+function draw_generation()
+  cls()
+  center_print('generating your sudoku,', 40)
+  center_print('please wait', 50)
+end
+
 -->8
 -- game
 
@@ -274,7 +268,15 @@ function update_game()
       overlay_enable()
     end
   end
-  return
+end
+
+function draw_game()
+  cls()
+  printsolution(sudoku)
+  printactivesquare()
+  printoverlay()
+  print(time_generation, 0, 122, 7)
+  pset(127, 127, 3)
 end
 
 -->8
