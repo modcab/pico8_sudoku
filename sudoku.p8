@@ -12,6 +12,7 @@ time_generation = 0
 removed = {}
 square_size = 10
 tries = 1
+padding = 0
 
 
 game = {
@@ -125,10 +126,14 @@ function setn(new_n)
   if (n == 2) then
     tries = 3
     square_size = 10
+    y_padding = 0
   else
     tries = 10
     square_size = 10
+    y_padding = 0    
   end
+  sudoku_w = square_size * n2
+  x_padding = 64 - flr(sudoku_w / 2)
 end
 
 function _draw()
@@ -159,8 +164,6 @@ function printactivesquare()
   local square = rowcolumnsquare(row, column)
   printsquare(row, column, square, 0, flr(rnd(15)) + 1)
 end
-
-
 
 function solve(sudoku)
   local sudoku_i = {}
@@ -252,27 +255,27 @@ end
 
 function printsquare(row, column, square, i, c)
   c = c or 7
-  x0 = column * square_size + (square % n)
+  x0 = column * square_size + (square % n) + x_padding
   y0 = row * square_size + flr(square / n)
-  x1 = square_size * (column + 1) + (square % n)
-  y1 = square_size * (row + 1) + flr(square / n)
+  x1 = square_size * (column + 1) + (square % n) + x_padding
+  y1 = square_size * (row + 1) + flr(square / n) + y_padding
   rect(x0, y0, x1, y1, c)
   if i != 0 then
-    x = (column + 1/4) * square_size + (square % n)
-    y = (row + 1/4) * square_size + flr(square / n)
+    x = (column + 1/4) * square_size + (square % n) + x_padding
+    y = (row + 1/4) * square_size + flr(square / n) + y_padding
     print(i, x, y, 7)
   end
 end
 
 function printheader(row, column, square, i)
-  x0 = column * square_size + (square % n) + 1
-  y0 = row * square_size + flr(square / n) + 1
-  x1 = square_size * (column + 1) + (square % n) - 1
-  y1 = square_size * (row + 1) + flr(square / n) - 1
+  x0 = column * square_size + (square % n) + 1 + x_padding
+  y0 = row * square_size + flr(square / n) + 1 + y_padding
+  x1 = square_size * (column + 1) + (square % n) - 1 + x_padding
+  y1 = square_size * (row + 1) + flr(square / n) - 1 + y_padding
   rectfill(x0, y0, x1, y1, 12)
   if i != 0 then
-    x = (column + 1/4) * square_size + (square % n)
-    y = (row + 1/4) * square_size + flr(square / n)
+    x = (column + 1/4) * square_size + (square % n) + x_padding
+    y = (row + 1/4) * square_size + flr(square / n) + y_padding
     print(i, x, y, 7)
   end
 end
