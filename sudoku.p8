@@ -17,7 +17,8 @@ y_padding = 0
 
 
 game = {
-  state = 1,
+  state = 0,
+  splash = 0,
   menu = 1,
   generation = 2,
   generating = 3,
@@ -40,6 +41,30 @@ overlay = {
   selected = 1,
 }
 
+splash = {
+  logo = {
+    direction = 0,
+    tic = 0,
+    every = 5,
+    still = false,
+    shaking = true,
+  },
+  numbers = {
+    tic = 0,
+    every = 1,
+    steps = 2,
+    all = {}
+  },
+
+}
+screen = {
+  min_x = 0,
+  min_y = 0,
+  max_x = 128,
+  max_y = 128,
+}
+
+
 function _init()
   setn(2)
   overlay_disable()
@@ -48,12 +73,27 @@ end
 function _update()
   if (game.state == game.menu) then
     update_menu()
+  elseif (game.state == game.splash) then
+    update_splash()
   elseif (game.state == game.generation) then
     update_generation()
   elseif (game.state == game.game) then
     update_game()
   end
 end
+
+function _draw()
+  if (game.state == game.menu) then
+    draw_menu()
+  elseif (game.state == game.splash) then
+    draw_splash()
+  elseif (game.state == game.generation) then
+    draw_generation()
+  elseif (game.state == game.game) then
+    draw_game()
+  end
+end
+
 
 function getifromrowcolumn(row, column)
   return (n2 * row) + column + 1;
@@ -73,16 +113,6 @@ function setn(new_n)
   end
   sudoku_w = square_size * n2
   x_padding = 64 - flr(sudoku_w / 2)
-end
-
-function _draw()
-  if (game.state == game.menu) then
-    draw_menu()
-  elseif (game.state == game.generation) then
-    draw_generation()
-  elseif (game.state == game.game) then
-    draw_game()
-  end
 end
 
 function printoverlay()
@@ -148,6 +178,56 @@ function nzeroes(solution)
     end
   end
   return zeroes
+end
+
+-->8
+-- splash
+function update_splash()
+  if (btnp(4)) then
+    game.state = game.menu
+  end
+  if (splash.numbers.tic == 0) then
+    local new_number = {
+      x = rnd(screen.max_y),
+      y = 0,
+      number = flr(rnd(9))
+    }
+    add(splash.numbers.all, new_number)
+    local new_number = {
+      x = rnd(screen.max_y),
+      y = 0,
+      number = flr(rnd(9))
+    }
+    add(splash.numbers.all, new_number)
+  end
+  splash.numbers.tic += 1
+  splash.numbers.tic = splash.numbers.tic % splash.numbers.every
+  for number in all(splash.numbers.all) do
+    number.y += splash.numbers.steps
+    if (number.y >= screen.max_y) then
+      del(splash.numbers.all, number)
+    end
+  end
+
+end
+
+function draw_splash()
+  cls()
+  for number in all(splash.numbers.all) do
+    print(number.number, number.x, number.y, 7)
+  end
+  local text = 'sudoku'
+  local padding = 64 - #text * 2
+  local width = #text * 4
+  local height = 8
+  rectfill(padding, 50, padding + width, 50 + height, 0)
+  print(text, padding, 50, 7)
+  local text = 'press \x8e to start'
+  local padding = 64 - #text * 2
+  local width = #text * 4
+  local height = 8
+  rectfill(padding, 60, padding + width, 60 + height, 0)
+  print(text, padding, 60, 7)
 end
 
 -->8
