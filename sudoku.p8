@@ -187,18 +187,14 @@ function update_splash()
     game.state = game.menu
   end
   if (splash.numbers.tic == 0) then
-    local new_number = {
-      x = rnd(screen.max_y),
-      y = 0,
-      number = flr(rnd(9))
-    }
-    add(splash.numbers.all, new_number)
-    local new_number = {
-      x = rnd(screen.max_y),
-      y = 0,
-      number = flr(rnd(9))
-    }
-    add(splash.numbers.all, new_number)
+    for i=0, 3 do
+      local new_number = {
+        x = rnd(screen.max_y),
+        y = 0,
+        number = flr(rnd(9)) + 1
+      }
+      add(splash.numbers.all, new_number)
+    end
   end
   splash.numbers.tic += 1
   splash.numbers.tic = splash.numbers.tic % splash.numbers.every
@@ -346,6 +342,10 @@ function update_game()
     end
     if (btnp(4)) then
       overlay_enable()
+    end
+    if (btnp(5)) then
+      position = getifromrowcolumn(grid.active.row, grid.active.column)
+      sudoku[position] = 0
     end
   end
 end
